@@ -1,0 +1,7 @@
+*.o
+*.so
+*.bc
+dev-install.sql
+results/
+regression.*
+log/

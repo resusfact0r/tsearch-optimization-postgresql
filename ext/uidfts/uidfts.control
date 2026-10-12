@@ -1,0 +1,5 @@
+# uidfts extension
+comment = 'full-text search over integer lexeme ids (uidvector, uidquery)'
+default_version = '0.1'
+module_pathname = '$libdir/uidfts'
+relocatable = true

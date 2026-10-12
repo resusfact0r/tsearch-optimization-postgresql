@@ -28,11 +28,11 @@ SELECT
     l.lexeme,
     l.encoded,
     (SELECT count(*) FROM docs d
-     WHERE  d.tsv     @@ to_tsquery('english', l.lexeme))  AS n_orig,
+     WHERE  d.tsv     @@ to_tsquery('simple', quote_literal(l.lexeme)))  AS n_orig,
     (SELECT count(*) FROM docs d
      WHERE  d.tsv_int @@ to_tsquery('simple',  l.encoded)) AS n_int,
     (SELECT count(*) FROM docs d
-     WHERE  d.tsv     @@ to_tsquery('english', l.lexeme))
+     WHERE  d.tsv     @@ to_tsquery('simple', quote_literal(l.lexeme)))
     =
     (SELECT count(*) FROM docs d
      WHERE  d.tsv_int @@ to_tsquery('simple',  l.encoded)) AS match
@@ -47,13 +47,13 @@ WITH pairs AS (
         (a.q_int  && b.q_int)                                 AS q_int
     FROM (
         SELECT lexeme, encoded,
-               to_tsquery('english', lexeme) AS q_orig,
+               to_tsquery('simple', quote_literal(lexeme)) AS q_orig,
                to_tsquery('simple',  encoded) AS q_int
         FROM lex_dict ORDER BY ndoc DESC LIMIT 3
     ) a
     CROSS JOIN (
         SELECT lexeme, encoded,
-               to_tsquery('english', lexeme) AS q_orig,
+               to_tsquery('simple', quote_literal(lexeme)) AS q_orig,
                to_tsquery('simple',  encoded) AS q_int
         FROM lex_dict ORDER BY ndoc DESC OFFSET 3 LIMIT 3
     ) b

@@ -6,6 +6,10 @@
 --   and2    — two-term AND query  (200 pairs from top-400)
 --   phrase  — two-term phrase <-> (200 pairs from top-400)
 --
+-- Lexemes in lex_dict are already stemmed, so queries are built with the
+-- 'simple' config: to_tsquery('english', ...) would stem them a second time
+-- ('advis' -> 'advi') and silently search for a non-existent lexeme.
+--
 -- For each class, four variants are timed:
 --   (tsv / tsv_int) × (GIN / GIST)
 --
@@ -31,7 +35,7 @@ INSERT INTO bench_queries (qtype, label, q_orig, q_int)
 SELECT
     'single',
     lexeme,
-    to_tsquery('english', lexeme),
+    to_tsquery('simple', quote_literal(lexeme)),
     to_tsquery('simple',  encoded)
 FROM lex_dict
 ORDER BY ndoc DESC
@@ -46,7 +50,7 @@ SELECT
     a.q_int  && b.q_int
 FROM (
     SELECT lexeme, encoded,
-           to_tsquery('english', lexeme) AS q_orig,
+           to_tsquery('simple', quote_literal(lexeme)) AS q_orig,
            to_tsquery('simple',  encoded) AS q_int,
            row_number() OVER (ORDER BY ndoc DESC) AS rn
     FROM lex_dict
@@ -54,7 +58,7 @@ FROM (
 ) a
 JOIN (
     SELECT lexeme, encoded,
-           to_tsquery('english', lexeme) AS q_orig,
+           to_tsquery('simple', quote_literal(lexeme)) AS q_orig,
            to_tsquery('simple',  encoded) AS q_int,
            row_number() OVER (ORDER BY ndoc DESC) AS rn
     FROM lex_dict
@@ -67,7 +71,7 @@ INSERT INTO bench_queries (qtype, label, q_orig, q_int)
 SELECT
     'phrase',
     a.lexeme || ' <-> ' || b.lexeme,
-    to_tsquery('english', a.lexeme || ' <-> ' || b.lexeme),
+    to_tsquery('simple', quote_literal(a.lexeme) || ' <-> ' || quote_literal(b.lexeme)),
     to_tsquery('simple',  a.encoded || ' <-> ' || b.encoded)
 FROM (
     SELECT lexeme, encoded,
