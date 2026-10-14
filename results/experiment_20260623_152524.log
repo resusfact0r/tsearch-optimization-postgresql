@@ -1,0 +1,102 @@
+[15:25:24] === FTS uid experiment ===
+[15:25:24] docs=10000, bench_runs=5, cold=false
+[15:25:24] Dropping existing database fts_bench...
+NOTICE:  database "fts_bench" does not exist, skipping
+DROP DATABASE
+[15:25:24] Creating database fts_bench...
+CREATE DATABASE
+[15:25:24] Configuring database-level GUCs...
+ALTER DATABASE
+ALTER DATABASE
+ERROR:  unrecognized configuration parameter "autovacuum_enabled"
+[15:25:24] Running 00_setup.sql ...
+SET
+SET
+SET
+CREATE TABLE
+CREATE TABLE
+00_setup.sql: done
+[15:25:24]   -> done in 0s
+[15:25:24] Generating and loading corpus (10000 documents)...
+Loading vocabulary from /usr/share/dict/words...
+Vocabulary size: 50000 words
+Generating 10,000 documents (50–200 words each)...
+Done.
+COPY 10000
+[15:25:25]   -> corpus loaded in 1s
+ANALYZE
+[15:25:25] Running 02_baseline.sql ...
+Timing is on.
+ALTER TABLE
+Time: 1585,475 ms (00:01,585)
+tsvector column added, building GIN index...
+CREATE INDEX
+Time: 782,205 ms
+GIN done, building GIST index...
+CREATE INDEX
+Time: 209,048 ms
+ANALYZE
+Time: 94,393 ms
+
+=== Baseline sizes ===
+ tsv_heap | gin_index | gist_index | docs_total 
+----------+-----------+------------+------------
+ 18 MB    | 7928 kB   | 3304 kB    | 44 MB
+(1 row)
+
+Time: 3,971 ms
+    relname     |  size   
+----------------+---------
+ docs           | 44 MB
+ pg_toast_81552 | 18 MB
+ docs_tsv_gin   | 7928 kB
+ docs_tsv_gist  | 3304 kB
+(4 rows)
+
+Time: 2,117 ms
+Timing is off.
+02_baseline.sql: done
+[15:25:27]   -> done in 2s
+[15:25:27] Running 03_dict.sql ...
+Timing is on.
+CREATE FUNCTION
+Time: 6,565 ms
+CREATE FUNCTION
+Time: 1,113 ms
+Building lex_dict via ts_stat (may take a few minutes)...
+psql:/home/artem/HSE_postgres/FTS_uid_research/sql/03_dict.sql:69: NOTICE:  table "lex_dict" does not exist, skipping
+DROP TABLE
+Time: 0,205 ms
+SELECT 25294
+Time: 389,709 ms
+ALTER TABLE
+Time: 15,777 ms
+CREATE INDEX
+Time: 15,271 ms
+ALTER TABLE
+Time: 1,433 ms
+UPDATE 25294
+Time: 212,738 ms
+ALTER TABLE
+Time: 4,586 ms
+CREATE INDEX
+Time: 16,399 ms
+ANALYZE
+Time: 21,106 ms
+
+=== Lexicon statistics ===
+ total_lexemes | max_id | max_encoded | min_ndoc | avg_ndoc | max_ndoc 
+---------------+--------+-------------+----------+----------+----------
+         25294 |  25294 | 06Zy        |        7 |       49 |      466
+(1 row)
+
+Time: 2,763 ms
+Timing is off.
+03_dict.sql: done
+[15:25:28]   -> done in 1s
+[15:25:28] Running 04_encode.sql ...
+Timing is on.
+psql:/home/artem/HSE_postgres/FTS_uid_research/sql/04_encode.sql:41: ERROR:  a column definition list is redundant for a function with OUT parameters
+LINE 21:     FROM unnest(tsv) AS u(lexeme text, positions smallint[],...
+                                   ^
+Time: 0,975 ms

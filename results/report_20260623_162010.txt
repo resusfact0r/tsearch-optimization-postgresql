@@ -1,0 +1,95 @@
+
+══════════════════════════════════════════════════════════════════
+  FTS uid experiment — summary
+══════════════════════════════════════════════════════════════════
+
+--- Corpus ---
+ total_docs | table_total_size 
+------------+------------------
+      10000 | 85 MB
+(1 row)
+
+
+--- Lexicon ---
+ distinct_lexemes | total_lexeme_occurrences | max_id | max_encoded_key 
+------------------+--------------------------+--------+-----------------
+            25294 |                  1246993 |  25294 | 0jim
+(1 row)
+
+
+--- Heap column sizes ---
+     column_name     | heap_size | avg_bytes_per_row 
+---------------------+-----------+-------------------
+ tsv (baseline)      | 18 MB     |              1859
+ tsv_int (int-proxy) | 14 MB     |              1503
+(2 rows)
+
+
+--- Heap size ratio ---
+ tsvint_pct_of_baseline | size_reduction_pct 
+------------------------+--------------------
+                   80.9 |               19.1
+(1 row)
+
+
+--- Index sizes ---
+    indexname     | index_size 
+------------------+------------
+ docs_tsv_gin     | 7968 kB
+ docs_tsv_gist    | 3344 kB
+ docs_tsvint_gin  | 7856 kB
+ docs_tsvint_gist | 3344 kB
+(4 rows)
+
+
+--- TOAST table (if any) ---
+   toast_table   | toast_size 
+-----------------+------------
+ pg_toast_130377 | 33 MB
+(1 row)
+
+
+--- Timing medians (ms) ---
+             phase             | query_type | runs | median_ms | min_ms | max_ms | stddev_ms | avg_hit_blk | avg_read_blk 
+-------------------------------+------------+------+-----------+--------+--------+-----------+-------------+--------------
+ rank_ts_rank_baseline         | and2       |   35 |      1.63 |   1.45 |   6.57 |      0.91 |         658 |            0
+ rank_ts_rank_baseline         | single     |   35 |      1.52 |   1.39 |   2.20 |      0.16 |         650 |            0
+ rank_ts_rank_baseline_cold    | and2       |    5 |      1.63 |   1.60 |   1.84 |      0.11 |         658 |            0
+ rank_ts_rank_baseline_cold    | single     |    5 |      1.60 |   1.58 |   1.70 |      0.06 |         650 |            0
+ rank_ts_rank_cd_baseline      | and2       |   35 |      2.03 |   1.74 |   5.65 |      0.77 |         658 |            0
+ rank_ts_rank_cd_baseline      | single     |   35 |      1.77 |   1.56 |   2.88 |      0.30 |         650 |            0
+ rank_ts_rank_cd_baseline_cold | and2       |    5 |      1.90 |   1.83 |   2.08 |      0.09 |         658 |            0
+ rank_ts_rank_cd_baseline_cold | single     |    5 |      1.71 |   1.64 |   1.84 |      0.08 |         650 |            0
+ rank_ts_rank_cd_int           | and2       |   35 |      1.60 |   1.49 |   5.05 |      0.77 |         507 |            0
+ rank_ts_rank_cd_int           | single     |   35 |      1.36 |   1.23 |   3.57 |      0.49 |         499 |            0
+ rank_ts_rank_cd_int_cold      | and2       |    5 |      1.57 |   1.46 |   1.61 |      0.06 |         507 |            0
+ rank_ts_rank_cd_int_cold      | single     |    5 |      1.38 |   1.29 |   1.56 |      0.11 |         499 |            0
+ rank_ts_rank_int              | and2       |   35 |      1.31 |   1.17 |   2.80 |      0.30 |         507 |            0
+ rank_ts_rank_int              | single     |   35 |      1.22 |   1.10 |   3.79 |      0.49 |         499 |            0
+ rank_ts_rank_int_cold         | and2       |    5 |      1.36 |   1.30 |   1.78 |      0.19 |         507 |            0
+ rank_ts_rank_int_cold         | single     |    5 |      1.22 |   1.17 |   1.42 |      0.10 |         499 |            0
+ search_gin_baseline           | and2       |   35 |      0.25 |   0.21 |   0.45 |      0.05 |          23 |            0
+ search_gin_baseline           | phrase     |   35 |      0.39 |   0.34 |   1.32 |      0.16 |          66 |            0
+ search_gin_baseline           | single     |   35 |      2.09 |   1.79 |   5.38 |      0.82 |         424 |            0
+ search_gin_baseline_cold      | and2       |    5 |      0.23 |   0.22 |   0.87 |      0.28 |          23 |            0
+ search_gin_baseline_cold      | single     |    5 |      1.95 |   1.89 |   2.50 |      0.26 |         424 |            0
+ search_gin_int                | and2       |   35 |      0.26 |   0.21 |   5.82 |      1.79 |         427 |            0
+ search_gin_int                | phrase     |   35 |      0.38 |   0.32 |   4.59 |      1.71 |         458 |            0
+ search_gin_int                | single     |   35 |      2.08 |   1.74 |   9.64 |      3.30 |        1878 |            0
+ search_gin_int_cold           | and2       |    5 |      0.31 |   0.24 |   0.70 |      0.19 |          23 |            0
+ search_gin_int_cold           | single     |    5 |      1.96 |   1.88 |   2.41 |      0.24 |         424 |            0
+ search_gist_baseline          | and2       |   35 |      3.04 |   2.76 |   5.48 |      0.91 |         996 |            0
+ search_gist_baseline          | phrase     |   35 |      3.59 |   2.79 |   7.09 |      1.25 |        1000 |            0
+ search_gist_baseline          | single     |   35 |      9.80 |   8.47 |  25.47 |      2.94 |        4464 |            0
+ search_gist_baseline_cold     | and2       |    5 |      3.04 |   2.93 |   3.61 |      0.27 |         875 |            0
+ search_gist_baseline_cold     | single     |    5 |      9.32 |   8.78 |   9.46 |      0.31 |        4162 |            0
+ search_gist_int               | and2       |   35 |      3.83 |   3.55 |   6.36 |      0.54 |        1434 |            0
+ search_gist_int               | phrase     |   35 |      4.15 |   3.69 |  12.41 |      1.50 |        1438 |            0
+ search_gist_int               | single     |   35 |      9.04 |   8.24 |  12.43 |      1.05 |        5514 |            0
+ search_gist_int_cold          | and2       |    5 |      3.79 |   3.73 |   3.93 |      0.08 |        1434 |            0
+ search_gist_int_cold          | single     |    5 |      8.75 |   8.49 |   9.09 |      0.23 |        5517 |            0
+(36 rows)
+
+
+══════════════════════════════════════════════════════════════════
+08_results.sql: done

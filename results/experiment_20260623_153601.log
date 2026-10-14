@@ -1,0 +1,113 @@
+[15:36:01] Building query workload...
+[15:36:01] === Benchmark measurement loop (5 runs each) ===
+[15:36:01] --- GIN search (warm cache) ---
+[15:36:01]   search_gin_baseline/single: done
+[15:36:02]   search_gin_int/single: done
+[15:36:02]   search_gin_baseline/and2: done
+[15:36:03]   search_gin_int/and2: done
+[15:36:03]   search_gin_baseline/phrase: done
+[15:36:03]   search_gin_int/phrase: done
+[15:36:03] --- GIST search (warm cache, GIN indexes temporarily dropped) ---
+DROP INDEX
+[15:36:04]   search_gist_baseline/single: done
+[15:36:04]   search_gist_int/single: done
+[15:36:04]   search_gist_baseline/and2: done
+[15:36:05]   search_gist_int/and2: done
+[15:36:05]   search_gist_baseline/phrase: done
+[15:36:06]   search_gist_int/phrase: done
+CREATE INDEX
+[15:36:07] --- Ranking throughput (TABLESAMPLE 2%, warm cache) ---
+[15:36:07]   rank_ts_rank_baseline/single: done
+[15:36:08]   rank_ts_rank_int/single: done
+[15:36:08]   rank_ts_rank_cd_baseline/single: done
+[15:36:09]   rank_ts_rank_cd_int/single: done
+[15:36:09]   rank_ts_rank_baseline/and2: done
+[15:36:09]   rank_ts_rank_int/and2: done
+[15:36:10]   rank_ts_rank_cd_baseline/and2: done
+[15:36:10]   rank_ts_rank_cd_int/and2: done
+[15:36:10] Importing timing CSV into bench_results...
+COPY 100
+[15:36:10] === Final report ===
+[15:36:10] Running 08_results.sql ...
+
+══════════════════════════════════════════════════════════════════
+  FTS uid experiment — summary
+══════════════════════════════════════════════════════════════════
+
+--- Corpus ---
+ total_docs | table_total_size 
+------------+------------------
+      10000 | 87 MB
+(1 row)
+
+
+--- Lexicon ---
+ distinct_lexemes | total_lexeme_occurrences | max_id | max_encoded_key 
+------------------+--------------------------+--------+-----------------
+            25294 |                  1246993 |  25294 | 0jim
+(1 row)
+
+
+--- Heap column sizes ---
+     column_name     | heap_size | avg_bytes_per_row 
+---------------------+-----------+-------------------
+ tsv (baseline)      | 18 MB     |              1859
+ tsv_int (int-proxy) | 14 MB     |              1503
+(2 rows)
+
+
+--- Heap size ratio ---
+ tsvint_pct_of_baseline | size_reduction_pct 
+------------------------+--------------------
+                   80.9 |               19.1
+(1 row)
+
+
+--- Index sizes ---
+    indexname     | index_size 
+------------------+------------
+ docs_tsv_gin     | 7968 kB
+ docs_tsv_gist    | 5968 kB
+ docs_tsvint_gin  | 7856 kB
+ docs_tsvint_gist | 3336 kB
+(4 rows)
+
+
+--- TOAST table (if any) ---
+   toast_table   | toast_size 
+-----------------+------------
+ pg_toast_130377 | 33 MB
+(1 row)
+
+
+--- Timing medians (ms) ---
+          phase           | query_type | runs | median_ms | min_ms | max_ms | stddev_ms | avg_hit_blk | avg_read_blk 
+--------------------------+------------+------+-----------+--------+--------+-----------+-------------+--------------
+ rank_ts_rank_baseline    | and2       |   10 |      1.62 |   1.52 |   2.03 |      0.14 |         658 |            0
+ rank_ts_rank_baseline    | single     |   10 |      1.53 |   1.45 |   1.96 |      0.17 |         650 |            0
+ rank_ts_rank_cd_baseline | and2       |   10 |      1.93 |   1.82 |   2.62 |      0.29 |         658 |            0
+ rank_ts_rank_cd_baseline | single     |   10 |      1.77 |   1.60 |   2.09 |      0.18 |         650 |            0
+ rank_ts_rank_cd_int      | and2       |   10 |      1.59 |   1.53 |   1.66 |      0.04 |         507 |            0
+ rank_ts_rank_cd_int      | single     |   10 |      1.33 |   1.29 |   3.06 |      0.55 |         499 |            0
+ rank_ts_rank_int         | and2       |   10 |      1.32 |   1.23 |   1.62 |      0.13 |         507 |            0
+ rank_ts_rank_int         | single     |   10 |      1.26 |   1.22 |   1.44 |      0.07 |         499 |            0
+ search_gin_baseline      | and2       |   10 |      0.26 |   0.22 |   0.37 |      0.04 |          23 |            0
+ search_gin_baseline      | phrase     |   10 |      0.41 |   0.36 |   1.32 |      0.29 |          66 |            0
+ search_gin_baseline      | single     |   10 |      2.10 |   1.93 |   2.81 |      0.26 |         424 |            0
+ search_gin_int           | and2       |   10 |      3.82 |   3.58 |   5.82 |      0.66 |        1436 |            0
+ search_gin_int           | phrase     |   10 |      4.04 |   3.70 |   4.59 |      0.28 |        1440 |            0
+ search_gin_int           | single     |   10 |      9.28 |   8.44 |   9.64 |      0.39 |        5514 |            0
+ search_gist_baseline     | and2       |   10 |      4.89 |   4.75 |   5.48 |      0.25 |        1281 |            0
+ search_gist_baseline     | phrase     |   10 |      5.54 |   5.01 |   7.09 |      0.67 |        1285 |            0
+ search_gist_baseline     | single     |   10 |     11.06 |  10.53 |  25.47 |      4.55 |        5213 |            0
+ search_gist_int          | and2       |   10 |      3.78 |   3.58 |   4.74 |      0.37 |        1436 |            0
+ search_gist_int          | phrase     |   10 |      4.17 |   3.84 |  12.41 |      2.63 |        1440 |            0
+ search_gist_int          | single     |   10 |      9.26 |   8.47 |  11.33 |      0.99 |        5514 |            0
+(20 rows)
+
+
+══════════════════════════════════════════════════════════════════
+08_results.sql: done
+[15:36:10]   -> done in 0s
+[15:36:10] Report written to /home/artem/HSE_postgres/FTS_uid_research/results/
+[15:36:10] === Experiment complete. Results in /home/artem/HSE_postgres/FTS_uid_research/results/ ===

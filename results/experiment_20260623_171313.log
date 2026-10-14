@@ -1,0 +1,878 @@
+[17:13:13] === FTS uid experiment ===
+[17:13:13] docs=500000, bench_runs=10, cold=true
+[17:13:13] Dropping existing database fts_bench...
+DROP DATABASE
+[17:13:13] Creating database fts_bench...
+CREATE DATABASE
+[17:13:13] Configuring database-level GUCs...
+ALTER DATABASE
+ALTER DATABASE
+[17:13:13] Running 00_setup.sql ...
+SET
+SET
+SET
+CREATE TABLE
+ALTER TABLE
+CREATE TABLE
+00_setup.sql: done
+[17:13:13]   -> done in 0s
+[17:13:13] Generating and loading corpus (500000 documents)...
+Loading vocabulary from /usr/share/dict/words...
+Vocabulary size: 50000 words
+Generating 500,000 documents (50–200 words each)...
+  50,000 / 500,000
+  100,000 / 500,000
+  150,000 / 500,000
+  200,000 / 500,000
+  250,000 / 500,000
+  300,000 / 500,000
+  350,000 / 500,000
+  400,000 / 500,000
+  450,000 / 500,000
+  500,000 / 500,000
+Done.
+COPY 500000
+[17:13:24]   -> corpus loaded in 11s
+ANALYZE
+[17:13:25] Running 02_baseline.sql ...
+Timing is on.
+ALTER TABLE
+Time: 81202,553 ms (01:21,203)
+tsvector column added, building GIN index...
+CREATE INDEX
+Time: 56741,079 ms (00:56,741)
+GIN done, building GIST index...
+CREATE INDEX
+Time: 34957,691 ms (00:34,958)
+ANALYZE
+Time: 5833,787 ms (00:05,834)
+
+=== Baseline sizes ===
+ tsv_heap | gin_index | gist_index | docs_total 
+----------+-----------+------------+------------
+ 883 MB   | 353 MB    | 165 MB     | 2164 MB
+(1 row)
+
+Time: 1516,808 ms (00:01,517)
+     relname     |  size   
+-----------------+---------
+ docs            | 2164 MB
+ pg_toast_180367 | 910 MB
+ docs_tsv_gin    | 353 MB
+ docs_tsv_gist   | 165 MB
+(4 rows)
+
+Time: 7,486 ms
+Timing is off.
+02_baseline.sql: done
+[17:16:26]   -> done in 181s
+[17:16:26] Running 03_dict.sql ...
+Timing is on.
+CREATE FUNCTION
+Time: 13,150 ms
+CREATE FUNCTION
+Time: 1,140 ms
+Building lex_dict via ts_stat (may take a few minutes)...
+psql:/home/artem/HSE_postgres/FTS_uid_research/sql/03_dict.sql:66: NOTICE:  table "lex_dict" does not exist, skipping
+DROP TABLE
+Time: 0,582 ms
+SELECT 25294
+Time: 24158,869 ms (00:24,159)
+ALTER TABLE
+Time: 64,596 ms
+CREATE INDEX
+Time: 18,003 ms
+ALTER TABLE
+Time: 1,869 ms
+UPDATE 25294
+Time: 221,426 ms
+ALTER TABLE
+Time: 4,720 ms
+CREATE INDEX
+Time: 12,287 ms
+ANALYZE
+Time: 29,643 ms
+
+=== Lexicon statistics ===
+ total_lexemes | max_id | max_encoded | min_ndoc | avg_ndoc | max_ndoc 
+---------------+--------+-------------+----------+----------+----------
+         25294 |  25294 | 0jim        |     1105 |     2456 |    22993
+(1 row)
+
+Time: 10,931 ms
+Timing is off.
+03_dict.sql: done
+[17:16:50]   -> done in 24s
+[17:16:50] Running 04_encode.sql ...
+Timing is on.
+CREATE FUNCTION
+Time: 13,846 ms
+ALTER TABLE
+Time: 2,833 ms
+Populating tsv_int (batch UPDATE, may take several minutes)...
+psql:/home/artem/HSE_postgres/FTS_uid_research/sql/04_encode.sql:72: NOTICE:  Total rows: 500000
+psql:/home/artem/HSE_postgres/FTS_uid_research/sql/04_encode.sql:72: NOTICE:  Processed ~50000/500000 rows
+psql:/home/artem/HSE_postgres/FTS_uid_research/sql/04_encode.sql:72: NOTICE:  Processed ~100000/500000 rows
+psql:/home/artem/HSE_postgres/FTS_uid_research/sql/04_encode.sql:72: NOTICE:  Processed ~150000/500000 rows
+psql:/home/artem/HSE_postgres/FTS_uid_research/sql/04_encode.sql:72: NOTICE:  Processed ~200000/500000 rows
+psql:/home/artem/HSE_postgres/FTS_uid_research/sql/04_encode.sql:72: NOTICE:  Processed ~250000/500000 rows
+psql:/home/artem/HSE_postgres/FTS_uid_research/sql/04_encode.sql:72: NOTICE:  Processed ~300000/500000 rows
+psql:/home/artem/HSE_postgres/FTS_uid_research/sql/04_encode.sql:72: NOTICE:  Processed ~350000/500000 rows
+psql:/home/artem/HSE_postgres/FTS_uid_research/sql/04_encode.sql:72: NOTICE:  Processed ~400000/500000 rows
+psql:/home/artem/HSE_postgres/FTS_uid_research/sql/04_encode.sql:72: NOTICE:  Processed ~450000/500000 rows
+psql:/home/artem/HSE_postgres/FTS_uid_research/sql/04_encode.sql:72: NOTICE:  Processed ~500000/500000 rows
+DO
+Time: 512735,965 ms (08:32,736)
+Building GIN index on tsv_int...
+CREATE INDEX
+Time: 60526,055 ms (01:00,526)
+Building GIST index on tsv_int...
+CREATE INDEX
+Time: 31723,991 ms (00:31,724)
+ANALYZE
+Time: 6385,123 ms (00:06,385)
+
+=== Int-proxy sizes ===
+ tsvint_heap | gin_index | gist_index 
+-------------+-----------+------------
+ 714 MB      | 373 MB    | 166 MB
+(1 row)
+
+Time: 3529,512 ms (00:03,530)
+
+=== Comparison: baseline vs int-proxy heap size ===
+ tsv_heap | tsvint_heap | pct_of_baseline 
+----------+-------------+-----------------
+ 883 MB   | 714 MB      |            80.9
+(1 row)
+
+Time: 600,646 ms
+Timing is off.
+04_encode.sql: done
+[17:27:06]   -> done in 616s
+[17:27:06] Running 05_verify.sql ...
+=== Verification ===
+ null_tsvint_rows 
+------------------
+                0
+(1 row)
+
+ lexeme_count_mismatch 
+-----------------------
+                     0
+(1 row)
+
+ lexeme  | encoded | n_orig | n_int | match 
+---------+---------+--------+-------+-------
+ initi   | 0001    |  22993 | 22993 | t
+ human   | 0002    |  21651 | 21651 | t
+ liber   | 0003    |  19480 | 19480 | t
+ equal   | 0004    |  18304 | 18304 | t
+ liquid  | 0005    |  18291 | 18291 | t
+ organ   | 0006    |  17336 | 17336 | t
+ domin   | 0007    |  17326 | 17326 | t
+ intern  | 0008    |  17214 | 17214 | t
+ depend  | 0009    |  17141 | 17141 | t
+ numer   | 000a    |  17125 | 17125 | t
+ observ  | 000b    |  16916 | 16916 | t
+ decor   | 000c    |  16040 | 16040 | t
+ command | 000d    |  16009 | 16009 | t
+ origin  | 000e    |  15952 | 15952 | t
+ correct | 000f    |  15948 | 15948 | t
+ anim    | 000g    |  15923 | 15923 | t
+ collect | 000h    |  15869 | 15869 | t
+ inform  | 000i    |  15823 | 15823 | t
+ libel   | 000j    |  14968 | 14968 | t
+ direct  | 000k    |  14942 | 14942 | t
+(20 rows)
+
+     q_str      | n_orig | n_int 
+----------------+--------+-------
+ initi & equal  |    907 |   907
+ initi & liquid |    946 |   946
+ initi & organ  |    845 |   845
+(3 rows)
+
+If all counts above are 0 / true, verification passed.
+05_verify.sql: done
+[17:28:20]   -> done in 74s
+[17:28:20] Building query workload...
+Timing is on.
+psql:/home/artem/HSE_postgres/FTS_uid_research/sql/06_bench_search.sql:20: NOTICE:  table "bench_queries" does not exist, skipping
+DROP TABLE
+Time: 4,240 ms
+CREATE TABLE
+Time: 49,029 ms
+INSERT 0 500
+Time: 25,446 ms
+INSERT 0 200
+Time: 23,287 ms
+INSERT 0 200
+Time: 16,123 ms
+
+=== Query workload ===
+ qtype  | count 
+--------+-------
+ and2   |   200
+ phrase |   200
+ single |   500
+(3 rows)
+
+Time: 3,422 ms
+Warm-up runs...
+DO
+Time: 1636,198 ms (00:01,636)
+
+=== EXPLAIN (ANALYZE, BUFFERS) – single-term, baseline GIN ===
+DO $$
+DECLARE
+    rec    record;
+    plan   json;
+BEGIN
+    SELECT * INTO rec FROM bench_queries WHERE qtype = 'single' LIMIT 1;
+
+    EXECUTE format(
+        'EXPLAIN (ANALYZE, BUFFERS, FORMAT JSON) '
+        'SELECT count(*) FROM docs WHERE tsv @@ %L::tsquery',
+        rec.q_orig::text
+    ) INTO plan;
+
+    RAISE NOTICE 'baseline GIN single: %', plan;
+
+    EXECUTE format(
+        'EXPLAIN (ANALYZE, BUFFERS, FORMAT JSON) '
+        'SELECT count(*) FROM docs WHERE tsv_int @@ %L::tsquery',
+        rec.q_int::text
+    ) INTO plan;
+
+    RAISE NOTICE 'int-proxy GIN single: %', plan;
+END;
+$$;
+psql:/home/artem/HSE_postgres/FTS_uid_research/sql/06_bench_search.sql:142: NOTICE:  baseline GIN single: [
+  {
+    "Plan": {
+      "Node Type": "Aggregate",
+      "Strategy": "Plain",
+      "Partial Mode": "Simple",
+      "Parallel Aware": false,
+      "Async Capable": false,
+      "Startup Cost": 65395.20,
+      "Total Cost": 65395.21,
+      "Plan Rows": 1,
+      "Plan Width": 8,
+      "Actual Startup Time": 124.136,
+      "Actual Total Time": 124.138,
+      "Actual Rows": 1,
+      "Actual Loops": 1,
+      "Shared Hit Blocks": 1,
+      "Shared Read Blocks": 40893,
+      "Shared Dirtied Blocks": 0,
+      "Shared Written Blocks": 0,
+      "Local Hit Blocks": 0,
+      "Local Read Blocks": 0,
+      "Local Dirtied Blocks": 0,
+      "Local Written Blocks": 0,
+      "Temp Read Blocks": 0,
+      "Temp Written Blocks": 0,
+      "Plans": [
+        {
+          "Node Type": "Bitmap Heap Scan",
+          "Parent Relationship": "Outer",
+          "Parallel Aware": false,
+          "Async Capable": false,
+          "Relation Name": "docs",
+          "Alias": "docs",
+          "Startup Cost": 646.49,
+          "Total Cost": 65337.62,
+          "Plan Rows": 23031,
+          "Plan Width": 0,
+          "Actual Startup Time": 10.996,
+          "Actual Total Time": 122.507,
+          "Actual Rows": 22993,
+          "Actual Loops": 1,
+          "Recheck Cond": "(tsv @@ '''initi'''::tsquery)",
+          "Rows Removed by Index Recheck": 0,
+          "Exact Heap Blocks": 40770,
+          "Lossy Heap Blocks": 0,
+          "Shared Hit Blocks": 1,
+          "Shared Read Blocks": 40893,
+          "Shared Dirtied Blocks": 0,
+          "Shared Written Blocks": 0,
+          "Local Hit Blocks": 0,
+          "Local Read Blocks": 0,
+          "Local Dirtied Blocks": 0,
+          "Local Written Blocks": 0,
+          "Temp Read Blocks": 0,
+          "Temp Written Blocks": 0,
+          "Plans": [
+            {
+              "Node Type": "Bitmap Index Scan",
+              "Parent Relationship": "Outer",
+              "Parallel Aware": false,
+              "Async Capable": false,
+              "Index Name": "docs_tsv_gin",
+              "Startup Cost": 0.00,
+              "Total Cost": 640.73,
+              "Plan Rows": 23031,
+              "Plan Width": 0,
+              "Actual Startup Time": 5.509,
+              "Actual Total Time": 5.510,
+              "Actual Rows": 45644,
+              "Actual Loops": 1,
+              "Index Cond": "(tsv @@ '''initi'''::tsquery)",
+              "Shared Hit Blocks": 1,
+              "Shared Read Blocks": 123,
+              "Shared Dirtied Blocks": 0,
+              "Shared Written Blocks": 0,
+              "Local Hit Blocks": 0,
+              "Local Read Blocks": 0,
+              "Local Dirtied Blocks": 0,
+              "Local Written Blocks": 0,
+              "Temp Read Blocks": 0,
+              "Temp Written Blocks": 0
+            }
+          ]
+        }
+      ]
+    },
+    "Planning": {
+      "Shared Hit Blocks": 0,
+      "Shared Read Blocks": 1,
+      "Shared Dirtied Blocks": 0,
+      "Shared Written Blocks": 0,
+      "Local Hit Blocks": 0,
+      "Local Read Blocks": 0,
+      "Local Dirtied Blocks": 0,
+      "Local Written Blocks": 0,
+      "Temp Read Blocks": 0,
+      "Temp Written Blocks": 0
+    },
+    "Planning Time": 0.086,
+    "Triggers": [
+    ],
+    "Execution Time": 124.162
+  }
+]
+psql:/home/artem/HSE_postgres/FTS_uid_research/sql/06_bench_search.sql:142: NOTICE:  int-proxy GIN single: [
+  {
+    "Plan": {
+      "Node Type": "Aggregate",
+      "Strategy": "Plain",
+      "Partial Mode": "Simple",
+      "Parallel Aware": false,
+      "Async Capable": false,
+      "Startup Cost": 64979.20,
+      "Total Cost": 64979.21,
+      "Plan Rows": 1,
+      "Plan Width": 8,
+      "Actual Startup Time": 69.918,
+      "Actual Total Time": 69.920,
+      "Actual Rows": 1,
+      "Actual Loops": 1,
+      "Shared Hit Blocks": 1,
+      "Shared Read Blocks": 20878,
+      "Shared Dirtied Blocks": 0,
+      "Shared Written Blocks": 0,
+      "Local Hit Blocks": 0,
+      "Local Read Blocks": 0,
+      "Local Dirtied Blocks": 0,
+      "Local Written Blocks": 0,
+      "Temp Read Blocks": 0,
+      "Temp Written Blocks": 0,
+      "Plans": [
+        {
+          "Node Type": "Bitmap Heap Scan",
+          "Parent Relationship": "Outer",
+          "Parallel Aware": false,
+          "Async Capable": false,
+          "Relation Name": "docs",
+          "Alias": "docs",
+          "Startup Cost": 230.49,
+          "Total Cost": 64921.62,
+          "Plan Rows": 23031,
+          "Plan Width": 0,
+          "Actual Startup Time": 4.975,
+          "Actual Total Time": 68.050,
+          "Actual Rows": 22993,
+          "Actual Loops": 1,
+          "Recheck Cond": "(tsv_int @@ '''0001'''::tsquery)",
+          "Rows Removed by Index Recheck": 0,
+          "Exact Heap Blocks": 20867,
+          "Lossy Heap Blocks": 0,
+          "Shared Hit Blocks": 1,
+          "Shared Read Blocks": 20878,
+          "Shared Dirtied Blocks": 0,
+          "Shared Written Blocks": 0,
+          "Local Hit Blocks": 0,
+          "Local Read Blocks": 0,
+          "Local Dirtied Blocks": 0,
+          "Local Written Blocks": 0,
+          "Temp Read Blocks": 0,
+          "Temp Written Blocks": 0,
+          "Plans": [
+            {
+              "Node Type": "Bitmap Index Scan",
+              "Parent Relationship": "Outer",
+              "Parallel Aware": false,
+              "Async Capable": false,
+              "Index Name": "docs_tsvint_gin",
+              "Startup Cost": 0.00,
+              "Total Cost": 224.73,
+              "Plan Rows": 23031,
+              "Plan Width": 0,
+              "Actual Startup Time": 2.463,
+              "Actual Total Time": 2.463,
+              "Actual Rows": 22993,
+              "Actual Loops": 1,
+              "Index Cond": "(tsv_int @@ '''0001'''::tsquery)",
+              "Shared Hit Blocks": 1,
+              "Shared Read Blocks": 11,
+              "Shared Dirtied Blocks": 0,
+              "Shared Written Blocks": 0,
+              "Local Hit Blocks": 0,
+              "Local Read Blocks": 0,
+              "Local Dirtied Blocks": 0,
+              "Local Written Blocks": 0,
+              "Temp Read Blocks": 0,
+              "Temp Written Blocks": 0
+            }
+          ]
+        }
+      ]
+    },
+    "Planning": {
+      "Shared Hit Blocks": 0,
+      "Shared Read Blocks": 1,
+      "Shared Dirtied Blocks": 0,
+      "Shared Written Blocks": 0,
+      "Local Hit Blocks": 0,
+      "Local Read Blocks": 0,
+      "Local Dirtied Blocks": 0,
+      "Local Written Blocks": 0,
+      "Temp Read Blocks": 0,
+      "Temp Written Blocks": 0
+    },
+    "Planning Time": 0.074,
+    "Triggers": [
+    ],
+    "Execution Time": 69.943
+  }
+]
+DO
+Time: 204,477 ms
+-- ── Force GIST (disable bitmap/index scans selectively) ───────────────────────
+-- PostgreSQL will pick GIN over GIST for exact matches by default.
+-- To benchmark GIST we must disable the GIN indexes temporarily.
+\echo ''
+
+\echo '=== GIST search (GIN indexes dropped temporarily) ==='
+=== GIST search (GIN indexes dropped temporarily) ===
+DROP INDEX IF EXISTS docs_tsv_gin;
+DROP INDEX
+Time: 39,747 ms
+DROP INDEX IF EXISTS docs_tsvint_gin;
+DROP INDEX
+Time: 15,364 ms
+DO $$
+DECLARE
+    rec    record;
+    plan   json;
+BEGIN
+    SELECT * INTO rec FROM bench_queries WHERE qtype = 'single' LIMIT 1;
+
+    EXECUTE format(
+        'EXPLAIN (ANALYZE, BUFFERS, FORMAT JSON) '
+        'SELECT count(*) FROM docs WHERE tsv @@ %L::tsquery',
+        rec.q_orig::text
+    ) INTO plan;
+    RAISE NOTICE 'baseline GIST single: %', plan;
+
+    EXECUTE format(
+        'EXPLAIN (ANALYZE, BUFFERS, FORMAT JSON) '
+        'SELECT count(*) FROM docs WHERE tsv_int @@ %L::tsquery',
+        rec.q_int::text
+    ) INTO plan;
+    RAISE NOTICE 'int-proxy GIST single: %', plan;
+END;
+$$;
+psql:/home/artem/HSE_postgres/FTS_uid_research/sql/06_bench_search.sql:175: NOTICE:  baseline GIST single: [
+  {
+    "Plan": {
+      "Node Type": "Aggregate",
+      "Strategy": "Plain",
+      "Partial Mode": "Simple",
+      "Parallel Aware": false,
+      "Async Capable": false,
+      "Startup Cost": 71967.61,
+      "Total Cost": 71967.62,
+      "Plan Rows": 1,
+      "Plan Width": 8,
+      "Actual Startup Time": 14681.483,
+      "Actual Total Time": 14681.485,
+      "Actual Rows": 1,
+      "Actual Loops": 1,
+      "Shared Hit Blocks": 385410,
+      "Shared Read Blocks": 194862,
+      "Shared Dirtied Blocks": 0,
+      "Shared Written Blocks": 0,
+      "Local Hit Blocks": 0,
+      "Local Read Blocks": 0,
+      "Local Dirtied Blocks": 0,
+      "Local Written Blocks": 0,
+      "Temp Read Blocks": 0,
+      "Temp Written Blocks": 0,
+      "Plans": [
+        {
+          "Node Type": "Bitmap Heap Scan",
+          "Parent Relationship": "Outer",
+          "Parallel Aware": false,
+          "Async Capable": false,
+          "Relation Name": "docs",
+          "Alias": "docs",
+          "Startup Cost": 7218.90,
+          "Total Cost": 71910.03,
+          "Plan Rows": 23031,
+          "Plan Width": 0,
+          "Actual Startup Time": 5140.086,
+          "Actual Total Time": 14674.003,
+          "Actual Rows": 22993,
+          "Actual Loops": 1,
+          "Recheck Cond": "(tsv @@ '''initi'''::tsquery)",
+          "Rows Removed by Index Recheck": 95418,
+          "Exact Heap Blocks": 45406,
+          "Lossy Heap Blocks": 33553,
+          "Shared Hit Blocks": 385410,
+          "Shared Read Blocks": 194862,
+          "Shared Dirtied Blocks": 0,
+          "Shared Written Blocks": 0,
+          "Local Hit Blocks": 0,
+          "Local Read Blocks": 0,
+          "Local Dirtied Blocks": 0,
+          "Local Written Blocks": 0,
+          "Temp Read Blocks": 0,
+          "Temp Written Blocks": 0,
+          "Plans": [
+            {
+              "Node Type": "Bitmap Index Scan",
+              "Parent Relationship": "Outer",
+              "Parallel Aware": false,
+              "Async Capable": false,
+              "Index Name": "docs_tsv_gist",
+              "Startup Cost": 0.00,
+              "Total Cost": 7213.14,
+              "Plan Rows": 23031,
+              "Plan Width": 0,
+              "Actual Startup Time": 5127.824,
+              "Actual Total Time": 5127.825,
+              "Actual Rows": 98574,
+              "Actual Loops": 1,
+              "Index Cond": "(tsv @@ '''initi'''::tsquery)",
+              "Shared Hit Blocks": 0,
+              "Shared Read Blocks": 36725,
+              "Shared Dirtied Blocks": 0,
+              "Shared Written Blocks": 0,
+              "Local Hit Blocks": 0,
+              "Local Read Blocks": 0,
+              "Local Dirtied Blocks": 0,
+              "Local Written Blocks": 0,
+              "Temp Read Blocks": 0,
+              "Temp Written Blocks": 0
+            }
+          ]
+        }
+      ]
+    },
+    "Planning": {
+      "Shared Hit Blocks": 4,
+      "Shared Read Blocks": 3,
+      "Shared Dirtied Blocks": 1,
+      "Shared Written Blocks": 0,
+      "Local Hit Blocks": 0,
+      "Local Read Blocks": 0,
+      "Local Dirtied Blocks": 0,
+      "Local Written Blocks": 0,
+      "Temp Read Blocks": 0,
+      "Temp Written Blocks": 0
+    },
+    "Planning Time": 0.117,
+    "Triggers": [
+    ],
+    "Execution Time": 14682.262
+  }
+]
+psql:/home/artem/HSE_postgres/FTS_uid_research/sql/06_bench_search.sql:175: NOTICE:  int-proxy GIST single: [
+  {
+    "Plan": {
+      "Node Type": "Aggregate",
+      "Strategy": "Plain",
+      "Partial Mode": "Simple",
+      "Parallel Aware": false,
+      "Async Capable": false,
+      "Startup Cost": 68831.61,
+      "Total Cost": 68831.62,
+      "Plan Rows": 1,
+      "Plan Width": 8,
+      "Actual Startup Time": 8813.213,
+      "Actual Total Time": 8813.214,
+      "Actual Rows": 1,
+      "Actual Loops": 1,
+      "Shared Hit Blocks": 202717,
+      "Shared Read Blocks": 125391,
+      "Shared Dirtied Blocks": 0,
+      "Shared Written Blocks": 0,
+      "Local Hit Blocks": 0,
+      "Local Read Blocks": 0,
+      "Local Dirtied Blocks": 0,
+      "Local Written Blocks": 0,
+      "Temp Read Blocks": 0,
+      "Temp Written Blocks": 0,
+      "Plans": [
+        {
+          "Node Type": "Bitmap Heap Scan",
+          "Parent Relationship": "Outer",
+          "Parallel Aware": false,
+          "Async Capable": false,
+          "Relation Name": "docs",
+          "Alias": "docs",
+          "Startup Cost": 4082.90,
+          "Total Cost": 68774.03,
+          "Plan Rows": 23031,
+          "Plan Width": 0,
+          "Actual Startup Time": 3463.167,
+          "Actual Total Time": 8805.909,
+          "Actual Rows": 22993,
+          "Actual Loops": 1,
+          "Recheck Cond": "(tsv_int @@ '''0001'''::tsquery)",
+          "Rows Removed by Index Recheck": 44763,
+          "Exact Heap Blocks": 51169,
+          "Lossy Heap Blocks": 0,
+          "Shared Hit Blocks": 202717,
+          "Shared Read Blocks": 125391,
+          "Shared Dirtied Blocks": 0,
+          "Shared Written Blocks": 0,
+          "Local Hit Blocks": 0,
+          "Local Read Blocks": 0,
+          "Local Dirtied Blocks": 0,
+          "Local Written Blocks": 0,
+          "Temp Read Blocks": 0,
+          "Temp Written Blocks": 0,
+          "Plans": [
+            {
+              "Node Type": "Bitmap Index Scan",
+              "Parent Relationship": "Outer",
+              "Parallel Aware": false,
+              "Async Capable": false,
+              "Index Name": "docs_tsvint_gist",
+              "Startup Cost": 0.00,
+              "Total Cost": 4077.14,
+              "Plan Rows": 23031,
+              "Plan Width": 0,
+              "Actual Startup Time": 3455.323,
+              "Actual Total Time": 3455.324,
+              "Actual Rows": 67756,
+              "Actual Loops": 1,
+              "Index Cond": "(tsv_int @@ '''0001'''::tsquery)",
+              "Shared Hit Blocks": 0,
+              "Shared Read Blocks": 20943,
+              "Shared Dirtied Blocks": 0,
+              "Shared Written Blocks": 0,
+              "Local Hit Blocks": 0,
+              "Local Read Blocks": 0,
+              "Local Dirtied Blocks": 0,
+              "Local Written Blocks": 0,
+              "Temp Read Blocks": 0,
+              "Temp Written Blocks": 0
+            }
+          ]
+        }
+      ]
+    },
+    "Planning": {
+      "Shared Hit Blocks": 0,
+      "Shared Read Blocks": 0,
+      "Shared Dirtied Blocks": 0,
+      "Shared Written Blocks": 0,
+      "Local Hit Blocks": 0,
+      "Local Read Blocks": 0,
+      "Local Dirtied Blocks": 0,
+      "Local Written Blocks": 0,
+      "Temp Read Blocks": 0,
+      "Temp Written Blocks": 0
+    },
+    "Planning Time": 0.061,
+    "Triggers": [
+    ],
+    "Execution Time": 8813.241
+  }
+]
+DO
+Time: 23496,715 ms (00:23,497)
+-- Restore GIN indexes
+\echo 'Restoring GIN indexes...'
+Restoring GIN indexes...
+CREATE INDEX IF NOT EXISTS docs_tsv_gin    ON docs USING GIN  (tsv);
+CREATE INDEX
+Time: 71239,711 ms (01:11,240)
+CREATE INDEX IF NOT EXISTS docs_tsvint_gin ON docs USING GIN  (tsv_int);
+CREATE INDEX
+Time: 51698,705 ms (00:51,699)
+\timing off
+Timing is off.
+\echo '06_bench_search.sql: done'
+06_bench_search.sql: done
+[17:30:49] === Benchmark measurement loop (10 runs each) ===
+[17:30:49] --- GIN search (warm cache, GIST indexes dropped to force GIN) ---
+DROP INDEX
+[17:30:50]   search_gin_baseline/single: done
+[17:30:52]   search_gin_int/single: done
+[17:30:53]   search_gin_baseline/and2: done
+[17:30:53]   search_gin_int/and2: done
+[17:30:54]   search_gin_baseline/phrase: done
+[17:30:55]   search_gin_int/phrase: done
+CREATE INDEX
+[17:32:15] --- GIST search (warm cache, GIN indexes dropped to force GIST) ---
+DROP INDEX
+[17:32:40]   search_gist_baseline/single: done
+[17:32:55]   search_gist_int/single: done
+[17:32:58]   search_gist_baseline/and2: done
+[17:33:01]   search_gist_int/and2: done
+[17:33:03]   search_gist_baseline/phrase: done
+[17:33:05]   search_gist_int/phrase: done
+CREATE INDEX
+[17:35:01] --- Ranking throughput (TABLESAMPLE 2%, warm cache) ---
+[17:35:03]   rank_ts_rank_baseline/single: done
+[17:35:04]   rank_ts_rank_int/single: done
+[17:35:05]   rank_ts_rank_cd_baseline/single: done
+[17:35:06]   rank_ts_rank_cd_int/single: done
+[17:35:07]   rank_ts_rank_baseline/and2: done
+[17:35:08]   rank_ts_rank_int/and2: done
+[17:35:09]   rank_ts_rank_cd_baseline/and2: done
+[17:35:11]   rank_ts_rank_cd_int/and2: done
+[17:35:11] --- Cold-cache runs ---
+[17:35:11] Flushing OS page cache...
+[17:35:16]   Page cache dropped.
+[17:35:16] --- GIN search (cold cache) ---
+DROP INDEX
+[17:35:26]   search_gin_baseline_cold/single: done
+[17:35:34]   search_gin_int_cold/single: done
+[17:35:36]   search_gin_baseline_cold/and2: done
+[17:35:37]   search_gin_int_cold/and2: done
+CREATE INDEX
+[17:37:13] --- GIST search (cold cache) ---
+DROP INDEX
+[17:37:38]   search_gist_baseline_cold/single: done
+[17:38:07]   search_gist_int_cold/single: done
+[17:38:18]   search_gist_baseline_cold/and2: done
+[17:38:31]   search_gist_int_cold/and2: done
+CREATE INDEX
+[17:41:00] --- Ranking throughput (cold cache) ---
+[17:41:07]   rank_ts_rank_baseline_cold/single: done
+[17:41:12]   rank_ts_rank_int_cold/single: done
+[17:41:15]   rank_ts_rank_cd_baseline_cold/single: done
+[17:41:18]   rank_ts_rank_cd_int_cold/single: done
+[17:41:21]   rank_ts_rank_baseline_cold/and2: done
+[17:41:23]   rank_ts_rank_int_cold/and2: done
+[17:41:26]   rank_ts_rank_cd_baseline_cold/and2: done
+[17:41:28]   rank_ts_rank_cd_int_cold/and2: done
+[17:41:28] Importing timing CSV into bench_results...
+COPY 360
+[17:41:28] === Final report ===
+[17:41:28] Running 08_results.sql ...
+
+══════════════════════════════════════════════════════════════════
+  FTS uid experiment — summary
+══════════════════════════════════════════════════════════════════
+
+--- Corpus ---
+ total_docs | table_total_size 
+------------+------------------
+     500000 | 4183 MB
+(1 row)
+
+
+--- Lexicon ---
+ distinct_lexemes | total_lexeme_occurrences | max_id | max_encoded_key 
+------------------+--------------------------+--------+-----------------
+            25294 |                 62120712 |  25294 | 0jim
+(1 row)
+
+
+--- Heap column sizes ---
+     column_name     | heap_size | avg_bytes_per_row 
+---------------------+-----------+-------------------
+ tsv (baseline)      | 883 MB    |              1852
+ tsv_int (int-proxy) | 714 MB    |              1497
+(2 rows)
+
+
+--- Heap size ratio ---
+ tsvint_pct_of_baseline | size_reduction_pct 
+------------------------+--------------------
+                   80.9 |               19.1
+(1 row)
+
+
+--- Index sizes ---
+    indexname     | index_size 
+------------------+------------
+ docs_tsv_gin     | 355 MB
+ docs_tsv_gist    | 166 MB
+ docs_tsvint_gin  | 373 MB
+ docs_tsvint_gist | 166 MB
+(4 rows)
+
+
+--- TOAST table (if any) ---
+   toast_table   | toast_size 
+-----------------+------------
+ pg_toast_180367 | 1663 MB
+(1 row)
+
+
+--- Timing medians (ms) ---
+             phase             | query_type | runs | median_ms | min_ms  |  max_ms  | stddev_ms | avg_hit_blk | avg_read_blk 
+-------------------------------+------------+------+-----------+---------+----------+-----------+-------------+--------------
+ rank_ts_rank_baseline         | and2       |   10 |     46.11 |   44.69 |    50.10 |      1.60 |       40162 |         2230
+ rank_ts_rank_baseline         | single     |   10 |     45.38 |   44.82 |  1160.16 |    350.83 |       38044 |         4341
+ rank_ts_rank_baseline_cold    | and2       |   10 |     66.44 |   53.48 |   636.76 |    180.24 |       40162 |         2230
+ rank_ts_rank_baseline_cold    | single     |   10 |     66.38 |   57.76 |  3367.98 |   1044.15 |       38044 |         4341
+ rank_ts_rank_cd_baseline      | and2       |   10 |     58.64 |   56.73 |    62.05 |      1.61 |       40802 |         1590
+ rank_ts_rank_cd_baseline      | single     |   10 |     51.09 |   48.58 |    54.09 |      2.08 |       39515 |         2870
+ rank_ts_rank_cd_baseline_cold | and2       |   10 |     73.34 |   69.41 |   548.07 |    149.88 |       40802 |         1590
+ rank_ts_rank_cd_baseline_cold | single     |   10 |     83.41 |   60.40 |   911.90 |    262.50 |       39515 |         2870
+ rank_ts_rank_cd_int           | and2       |   10 |     49.04 |   47.80 |    55.04 |      2.20 |       30706 |         1270
+ rank_ts_rank_cd_int           | single     |   10 |     44.55 |   40.60 |    48.43 |      2.41 |       29419 |         2550
+ rank_ts_rank_cd_int_cold      | and2       |   10 |     68.15 |   59.38 |   392.91 |    102.52 |       30706 |         1270
+ rank_ts_rank_cd_int_cold      | single     |   10 |     58.72 |   50.24 |   756.25 |    219.86 |       29419 |         2550
+ rank_ts_rank_int              | and2       |   10 |     37.23 |   36.24 |    38.08 |      0.70 |       30066 |         1910
+ rank_ts_rank_int              | single     |   10 |     37.93 |   36.31 |   303.35 |     83.87 |       28441 |         3528
+ rank_ts_rank_int_cold         | and2       |   10 |     46.30 |   44.18 |   561.39 |    162.01 |       30066 |         1910
+ rank_ts_rank_int_cold         | single     |   10 |     50.66 |   44.24 |  2233.59 |    686.71 |       28441 |         3528
+ search_gin_baseline           | and2       |   10 |      3.11 |    2.98 |     6.27 |      1.10 |         524 |           15
+ search_gin_baseline           | phrase     |   10 |      6.83 |    6.19 |   133.05 |     39.89 |        2486 |           99
+ search_gin_baseline           | single     |   10 |     98.52 |   93.31 |   162.38 |     20.77 |           2 |        20880
+ search_gin_baseline_cold      | and2       |   10 |      4.32 |    3.77 |   108.92 |     32.99 |         524 |           15
+ search_gin_baseline_cold      | single     |   10 |    127.25 |  112.50 |  6624.74 |   2052.10 |           9 |        20874
+ search_gin_int                | and2       |   10 |      3.17 |    3.03 |     6.70 |      1.12 |         536 |            2
+ search_gin_int                | phrase     |   10 |      6.18 |    5.77 |    52.01 |     14.40 |        2326 |           87
+ search_gin_int                | single     |   10 |     95.05 |   89.90 |   101.89 |      3.23 |           2 |        20880
+ search_gin_int_cold           | and2       |   10 |      4.16 |    3.72 |     9.87 |      1.92 |         536 |            2
+ search_gin_int_cold           | single     |   10 |    126.73 |  108.79 |  5299.99 |   1634.45 |           2 |        20880
+ search_gist_baseline          | and2       |   10 |    165.81 |  159.63 |   590.96 |    134.54 |       22729 |        35807
+ search_gist_baseline          | phrase     |   10 |    170.20 |  162.67 |   174.50 |      3.68 |       22731 |        35809
+ search_gist_baseline          | single     |   10 |   1776.19 | 1569.68 |  7947.87 |   1961.98 |      150733 |       109176
+ search_gist_baseline_cold     | and2       |   10 |    230.29 |  201.38 |  6710.06 |   2050.06 |       22729 |        35766
+ search_gist_baseline_cold     | single     |   10 |    625.20 |  584.82 | 16757.90 |   5099.86 |      150734 |       109149
+ search_gist_int               | and2       |   10 |    200.28 |  189.66 |   205.48 |      5.44 |       34797 |        43589
+ search_gist_int               | phrase     |   10 |    204.75 |  194.47 |   218.96 |      7.42 |       34797 |        43593
+ search_gist_int               | single     |   10 |    550.43 |  516.72 |  5119.81 |   1615.37 |      202788 |       125369
+ search_gist_int_cold          | and2       |   10 |    252.23 |  233.96 |  8982.77 |   2758.99 |       34797 |        43531
+ search_gist_int_cold          | single     |   10 |    714.91 |  670.31 | 17683.38 |   5309.18 |      202789 |       125341
+(36 rows)
+
+
+══════════════════════════════════════════════════════════════════
+08_results.sql: done
+[17:41:33]   -> done in 5s
+[17:41:36] Report written to /home/artem/HSE_postgres/FTS_uid_research/results/
+[17:41:36] === Experiment complete. Results in /home/artem/HSE_postgres/FTS_uid_research/results/ ===

@@ -1,0 +1,29 @@
+SET
+SET
+psql:sql/uid/20_cpu_bench_plain.sql:16: NOTICE:  table "cpu_res" does not exist, skipping
+DROP TABLE
+CREATE TABLE
+CREATE FUNCTION
+TRUNCATE TABLE
+=== ns per call, net of scan overhead (median of reps) ===
+     fn     | qtype  | tsv_ns | proxy_ns | uidv_ns | x_proxy | x_uidv | worst_spread 
+ match      | single |    387 |      336 |     100 |    1.15 |   3.87 |         1.17
+ match      | and2   |    386 |      324 |     116 |    1.19 |   3.34 |         1.10
+ match      | phrase |    389 |      364 |      70 |    1.07 |   5.54 |         1.12
+ ts_rank    | single |    431 |      400 |     147 |    1.08 |   2.93 |         1.11
+ ts_rank    | and2   |    670 |      542 |     257 |    1.24 |   2.61 |         1.17
+ ts_rank    | phrase |    680 |      505 |     204 |    1.35 |   3.33 |         1.19
+ ts_rank_cd | single |    890 |      886 |     670 |    1.00 |   1.33 |         1.13
+ ts_rank_cd | and2   |   2764 |     2486 |    2203 |    1.11 |   1.25 |         1.08
+ ts_rank_cd | phrase |   2713 |     2613 |    2156 |    1.04 |   1.26 |         1.12
+=== scan overhead (base), ns per row ===
+ variant | qtype  | ns  
+ tsv     | and2   | 499
+ tsv_int | and2   | 673
+ uidv    | and2   | 780
+ tsv     | phrase | 501
+ tsv_int | phrase | 648
+ uidv    | phrase | 819
+ tsv     | single | 479
+ tsv_int | single | 660
+ uidv    | single | 796

@@ -1,0 +1,8 @@
+[15:23:24] === FTS uid experiment ===
+[15:23:24] docs=10000, bench_runs=5, cold=false
+[15:23:24] Dropping existing database fts_bench...
+NOTICE:  database "fts_bench" does not exist, skipping
+DROP DATABASE
+[15:23:25] Creating database fts_bench...
+ERROR:  encoding "UTF8" does not match locale "en_US"
+DETAIL:  The chosen LC_CTYPE setting requires encoding "LATIN1".

@@ -1,0 +1,102 @@
+[15:26:52] === FTS uid experiment ===
+[15:26:52] docs=10000, bench_runs=5, cold=false
+[15:26:52] Dropping existing database fts_bench...
+DROP DATABASE
+[15:26:52] Creating database fts_bench...
+CREATE DATABASE
+[15:26:52] Configuring database-level GUCs...
+ALTER DATABASE
+ALTER DATABASE
+[15:26:52] Running 00_setup.sql ...
+SET
+SET
+SET
+CREATE TABLE
+ALTER TABLE
+CREATE TABLE
+00_setup.sql: done
+[15:26:52]   -> done in 0s
+[15:26:52] Generating and loading corpus (10000 documents)...
+Loading vocabulary from /usr/share/dict/words...
+Vocabulary size: 50000 words
+Generating 10,000 documents (50–200 words each)...
+Done.
+COPY 10000
+[15:26:52]   -> corpus loaded in 0s
+ANALYZE
+[15:26:52] Running 02_baseline.sql ...
+Timing is on.
+ALTER TABLE
+Time: 1545,015 ms (00:01,545)
+tsvector column added, building GIN index...
+CREATE INDEX
+Time: 751,539 ms
+GIN done, building GIST index...
+CREATE INDEX
+Time: 225,716 ms
+ANALYZE
+Time: 108,100 ms
+
+=== Baseline sizes ===
+ tsv_heap | gin_index | gist_index | docs_total 
+----------+-----------+------------+------------
+ 18 MB    | 7928 kB   | 3296 kB    | 44 MB
+(1 row)
+
+Time: 4,856 ms
+    relname     |  size   
+----------------+---------
+ docs           | 44 MB
+ pg_toast_89312 | 18 MB
+ docs_tsv_gin   | 7928 kB
+ docs_tsv_gist  | 3296 kB
+(4 rows)
+
+Time: 1,901 ms
+Timing is off.
+02_baseline.sql: done
+[15:26:55]   -> done in 3s
+[15:26:55] Running 03_dict.sql ...
+Timing is on.
+CREATE FUNCTION
+Time: 5,650 ms
+CREATE FUNCTION
+Time: 1,326 ms
+Building lex_dict via ts_stat (may take a few minutes)...
+psql:/home/artem/HSE_postgres/FTS_uid_research/sql/03_dict.sql:69: NOTICE:  table "lex_dict" does not exist, skipping
+DROP TABLE
+Time: 0,271 ms
+SELECT 25294
+Time: 426,918 ms
+ALTER TABLE
+Time: 16,206 ms
+CREATE INDEX
+Time: 13,885 ms
+ALTER TABLE
+Time: 1,679 ms
+UPDATE 25294
+Time: 182,682 ms
+ALTER TABLE
+Time: 5,582 ms
+CREATE INDEX
+Time: 11,329 ms
+ANALYZE
+Time: 15,934 ms
+
+=== Lexicon statistics ===
+ total_lexemes | max_id | max_encoded | min_ndoc | avg_ndoc | max_ndoc 
+---------------+--------+-------------+----------+----------+----------
+         25294 |  25294 | 06Zy        |        7 |       49 |      466
+(1 row)
+
+Time: 4,369 ms
+Timing is off.
+03_dict.sql: done
+[15:26:56]   -> done in 1s
+[15:26:56] Running 04_encode.sql ...
+Timing is on.
+psql:/home/artem/HSE_postgres/FTS_uid_research/sql/04_encode.sql:41: ERROR:  UNNEST() with multiple arguments cannot have a column definition list
+LINE 15: ...         FROM unnest(u.positions, u.weights) AS t(p smallint...
+                                                              ^
+HINT:  Use separate UNNEST() calls inside ROWS FROM(), and attach a column definition list to each one.
+Time: 2,839 ms

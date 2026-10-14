@@ -1,0 +1,46 @@
+Timing is on.
+=== uid verification ===
+  docs  | docs_with_uidv | lexcount_mismatch 
+--------+----------------+-------------------
+ 500000 |         500000 |                 0
+(1 row)
+
+Time: 20675,803 ms (00:20,676)
+ queries | bad_queries 
+---------+-------------
+     900 |          47
+(1 row)
+
+Time: 15,476 ms
+psql:sql/uid/12_uid_verify.sql:21: NOTICE:  table "verify_sample" does not exist, skipping
+DROP TABLE
+Time: 3,629 ms
+SELECT 5000
+Time: 12951,490 ms (00:12,951)
+@@ and rank equivalence on the sample (all bench queries):
+ qtype  |  pairs  | matched | match_mismatch | rank_not_bitexact | rank_max_reldiff | rank_cd_not_bitexact | rank_cd_max_reldiff 
+--------+---------+---------+----------------+-------------------+------------------+----------------------+---------------------
+ and2   | 1000000 |     467 |              0 |                 0 |                0 |                    0 |                   0
+ phrase | 1000000 |       4 |              0 |                 0 |                0 |                    0 |                   0
+ single | 2500000 |   49561 |              0 |                 0 |                0 |                    0 |                   0
+(3 rows)
+
+Time: 115100,934 ms (01:55,101)
+ qid | qtype  |         q_orig         |    q_uid    | n_tsv | n_uid 
+-----+--------+------------------------+-------------+-------+-------
+   1 | single | 'initi'                | 1           | 22993 | 22993
+ 250 | single | 'polit'                | 251         |  9823 |  9823
+ 500 | single | 'concili'              | 500         |  8455 |  8455
+ 501 | and2   | 'initi' & 'escal'      | 1 & 201     |   503 |   503
+ 600 | and2   | 'comfort' & 'disabl'   | 100 & 300   |   208 |   208
+ 700 | and2   | 'dictat' & 'normal'    | 200 & 400   |   201 |   201
+ 701 | phrase | 'initi' <-> 'escal'    | 1 <-> 201   |     2 |     2
+ 800 | phrase | 'comfort' <-> 'disabl' | 100 <-> 300 |     0 |     0
+ 900 | phrase | 'dictat' <-> 'normal'  | 200 <-> 400 |     0 |     0
+(9 rows)
+
+Time: 28458,084 ms (00:28,458)
+DROP TABLE
+Time: 19,337 ms
+Timing is off.
+12_uid_verify.sql: done

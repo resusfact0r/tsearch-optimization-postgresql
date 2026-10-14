@@ -1,0 +1,257 @@
+[00:59:03] Running 13_uid_bench.sql ...
+SET
+SET
+DROP TABLE
+SELECT 20000
+SELECT 20000
+SELECT 20000
+VACUUM
+VACUUM
+VACUUM
+ variant | rows  | table_size | avg_bytes 
+---------+-------+------------+-----------
+ tsv     | 20000 | 41 MB      |      1849
+ tsv_int | 20000 | 34 MB      |      1496
+ uidv    | 20000 | 27 MB      |      1249
+(3 rows)
+
+psql:/home/artem/HSE_postgres/FTS_uid_research/sql/uid/13_uid_bench.sql:53: NOTICE:  relation "uid_bench_results" already exists, skipping
+CREATE TABLE
+TRUNCATE TABLE
+CREATE FUNCTION
+warm-up...
+ uid_bench_one 
+---------------
+ 
+ 
+ 
+(3 rows)
+
+DELETE 3
+measuring (this takes a few minutes)...
+ uid_bench_one 
+---------------
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+(180 rows)
+
+13_uid_bench.sql: done
+[01:01:46]   -> done in 163s
+
+=== Sizes over the full corpus ===
+  tsv   | tsv_int_proxy |  uidv  | avg_tsv_b | avg_tsv_int_b | avg_uidv_b | uidv_pct_of_tsv 
+--------+---------------+--------+-----------+---------------+------------+-----------------
+ 883 MB | 714 MB        | 597 MB |      1852 |          1497 |       1251 |            67.6
+(1 row)
+
+
+=== Median wall time per run (ms): sum over nq queries x sample rows ===
+     fn     | qtype  | tsv_ms | proxy_ms | uidv_ms | x_proxy | x_uidv | x_proxy_net | x_uidv_net | uidv_net_ns_per_call | tsv_net_ns_per_call 
+------------+--------+--------+----------+---------+---------+--------+-------------+------------+----------------------+---------------------
+ detoast    | single |  775.1 |    468.5 |   153.4 |    1.65 |   5.05 |             |            |                    0 |                   0
+ detoast    | and2   |  755.3 |    462.1 |   144.4 |    1.63 |   5.23 |             |            |                    0 |                   0
+ detoast    | phrase |  771.9 |    465.9 |   145.7 |    1.66 |   5.30 |             |            |                    0 |                   0
+ match      | single |  868.8 |    576.3 |   188.2 |    1.51 |   4.62 |        0.87 |       2.69 |                   87 |                 234
+ match      | and2   |  860.3 |    574.2 |   185.5 |    1.50 |   4.64 |        0.94 |       2.56 |                  103 |                 263
+ match      | phrase |  878.7 |    584.4 |   191.0 |    1.50 |   4.60 |        0.90 |       2.36 |                  113 |                 267
+ ts_rank    | single |  879.7 |    591.0 |   204.3 |    1.49 |   4.31 |        0.85 |       2.05 |                  127 |                 261
+ ts_rank    | and2   |  981.9 |    654.3 |   252.3 |    1.50 |   3.89 |        1.18 |       2.10 |                  270 |                 566
+ ts_rank    | phrase |  976.2 |    649.9 |   245.9 |    1.50 |   3.97 |        1.11 |       2.04 |                  251 |                 511
+ ts_rank_cd | single | 1238.1 |    868.0 |   392.6 |    1.43 |   3.15 |        1.16 |       1.94 |                  598 |                1157
+ ts_rank_cd | and2   | 1797.3 |   1469.7 |  1057.1 |    1.22 |   1.70 |        1.03 |       1.14 |                 2282 |                2605
+ ts_rank_cd | phrase | 1803.0 |   1489.3 |  1060.7 |    1.21 |   1.70 |        1.01 |       1.13 |                 2287 |                2578
+(12 rows)
+
+
+=== Run-to-run spread (max/min of the reps) ===
+ variant |   fn    | qtype  | reps | min_ms | max_ms | spread 
+---------+---------+--------+------+--------+--------+--------
+ tsv_int | match   | and2   |    5 |  558.1 |  646.6 |   1.16
+ uidv    | ts_rank | single |    5 |  195.9 |  225.0 |   1.15
+ uidv    | detoast | and2   |    5 |  133.3 |  153.9 |   1.15
+ uidv    | match   | and2   |    5 |  182.6 |  207.9 |   1.14
+ tsv     | detoast | single |    5 |  734.9 |  825.2 |   1.12
+ uidv    | detoast | single |    5 |  145.8 |  163.3 |   1.12
+ tsv_int | detoast | single |    5 |  437.1 |  491.2 |   1.12
+ uidv    | detoast | phrase |    5 |  132.7 |  148.6 |   1.12
+(8 rows)
+
+[01:01:55] === done. Results in /home/artem/HSE_postgres/FTS_uid_research/results/uid/ ===

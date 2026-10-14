@@ -1,0 +1,5 @@
+[15:19:40] === FTS uid experiment ===
+[15:19:40] docs=500000, bench_runs=5, cold=true
+[15:19:40] Creating database fts_bench...
+ERROR:  encoding "UTF8" does not match locale "en_US"
+DETAIL:  The chosen LC_CTYPE setting requires encoding "LATIN1".

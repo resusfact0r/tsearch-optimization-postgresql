@@ -1,0 +1,32 @@
+Timing is on.
+psql:sql/uid/11_uid_load.sql:7: NOTICE:  table "docs_uid" does not exist, skipping
+DROP TABLE
+Time: 2,145 ms
+SELECT 500000
+Time: 307497,175 ms (05:07,497)
+ALTER TABLE
+Time: 7345,145 ms (00:07,345)
+ALTER TABLE
+Time: 1,378 ms
+VACUUM
+Time: 4139,129 ms (00:04,139)
+ALTER TABLE
+Time: 5,522 ms
+UPDATE 900
+Time: 59,115 ms
+
+=== uidvector sizes (vs tsvector baseline and base36 proxy) ===
+  tsv   | tsv_int_proxy |  uidv  | uidv_pct_of_tsv 
+--------+---------------+--------+-----------------
+ 883 MB | 714 MB        | 597 MB |            67.6
+(1 row)
+
+Time: 10490,174 ms (00:10,490)
+ docs_uid_table_incl_toast 
+---------------------------
+ 677 MB
+(1 row)
+
+Time: 7,340 ms
+Timing is off.
+11_uid_load.sql: done

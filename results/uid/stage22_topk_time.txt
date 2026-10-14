@@ -1,0 +1,12 @@
+psql:sql/uid/22_topk_time.sql:11: NOTICE:  table "topk_res" does not exist, skipping
+
+
+ qtype  | scan | tsv_ms | proxy_ms | uidv_ms | x_uidv | worst_spread 
+--------+------+--------+----------+---------+--------+--------------
+ single | seq  | 286.49 |   260.49 |  231.80 |   1.24 |         1.20
+ single | gin  |  20.56 |    19.59 |         |        |         1.59
+ and2   | seq  | 269.85 |   227.66 |  216.64 |   1.25 |         1.27
+ and2   | gin  |   1.77 |     1.66 |         |        |         2.15
+ phrase | seq  | 272.10 |   236.44 |  218.09 |   1.25 |         1.30
+ phrase | gin  |   1.85 |     1.41 |         |        |         1.65
+

@@ -1,0 +1,95 @@
+
+══════════════════════════════════════════════════════════════════
+  FTS uid experiment — summary
+══════════════════════════════════════════════════════════════════
+
+--- Corpus ---
+ total_docs | table_total_size 
+------------+------------------
+     500000 | 4183 MB
+(1 row)
+
+
+--- Lexicon ---
+ distinct_lexemes | total_lexeme_occurrences | max_id | max_encoded_key 
+------------------+--------------------------+--------+-----------------
+            25294 |                 62120712 |  25294 | 0jim
+(1 row)
+
+
+--- Heap column sizes ---
+     column_name     | heap_size | avg_bytes_per_row 
+---------------------+-----------+-------------------
+ tsv (baseline)      | 883 MB    |              1852
+ tsv_int (int-proxy) | 714 MB    |              1497
+(2 rows)
+
+
+--- Heap size ratio ---
+ tsvint_pct_of_baseline | size_reduction_pct 
+------------------------+--------------------
+                   80.9 |               19.1
+(1 row)
+
+
+--- Index sizes ---
+    indexname     | index_size 
+------------------+------------
+ docs_tsv_gin     | 355 MB
+ docs_tsv_gist    | 166 MB
+ docs_tsvint_gin  | 373 MB
+ docs_tsvint_gist | 166 MB
+(4 rows)
+
+
+--- TOAST table (if any) ---
+   toast_table   | toast_size 
+-----------------+------------
+ pg_toast_180367 | 1663 MB
+(1 row)
+
+
+--- Timing medians (ms) ---
+             phase             | query_type | runs | median_ms | min_ms  |  max_ms  | stddev_ms | avg_hit_blk | avg_read_blk 
+-------------------------------+------------+------+-----------+---------+----------+-----------+-------------+--------------
+ rank_ts_rank_baseline         | and2       |   10 |     46.11 |   44.69 |    50.10 |      1.60 |       40162 |         2230
+ rank_ts_rank_baseline         | single     |   10 |     45.38 |   44.82 |  1160.16 |    350.83 |       38044 |         4341
+ rank_ts_rank_baseline_cold    | and2       |   10 |     66.44 |   53.48 |   636.76 |    180.24 |       40162 |         2230
+ rank_ts_rank_baseline_cold    | single     |   10 |     66.38 |   57.76 |  3367.98 |   1044.15 |       38044 |         4341
+ rank_ts_rank_cd_baseline      | and2       |   10 |     58.64 |   56.73 |    62.05 |      1.61 |       40802 |         1590
+ rank_ts_rank_cd_baseline      | single     |   10 |     51.09 |   48.58 |    54.09 |      2.08 |       39515 |         2870
+ rank_ts_rank_cd_baseline_cold | and2       |   10 |     73.34 |   69.41 |   548.07 |    149.88 |       40802 |         1590
+ rank_ts_rank_cd_baseline_cold | single     |   10 |     83.41 |   60.40 |   911.90 |    262.50 |       39515 |         2870
+ rank_ts_rank_cd_int           | and2       |   10 |     49.04 |   47.80 |    55.04 |      2.20 |       30706 |         1270
+ rank_ts_rank_cd_int           | single     |   10 |     44.55 |   40.60 |    48.43 |      2.41 |       29419 |         2550
+ rank_ts_rank_cd_int_cold      | and2       |   10 |     68.15 |   59.38 |   392.91 |    102.52 |       30706 |         1270
+ rank_ts_rank_cd_int_cold      | single     |   10 |     58.72 |   50.24 |   756.25 |    219.86 |       29419 |         2550
+ rank_ts_rank_int              | and2       |   10 |     37.23 |   36.24 |    38.08 |      0.70 |       30066 |         1910
+ rank_ts_rank_int              | single     |   10 |     37.93 |   36.31 |   303.35 |     83.87 |       28441 |         3528
+ rank_ts_rank_int_cold         | and2       |   10 |     46.30 |   44.18 |   561.39 |    162.01 |       30066 |         1910
+ rank_ts_rank_int_cold         | single     |   10 |     50.66 |   44.24 |  2233.59 |    686.71 |       28441 |         3528
+ search_gin_baseline           | and2       |   10 |      3.11 |    2.98 |     6.27 |      1.10 |         524 |           15
+ search_gin_baseline           | phrase     |   10 |      6.83 |    6.19 |   133.05 |     39.89 |        2486 |           99
+ search_gin_baseline           | single     |   10 |     98.52 |   93.31 |   162.38 |     20.77 |           2 |        20880
+ search_gin_baseline_cold      | and2       |   10 |      4.32 |    3.77 |   108.92 |     32.99 |         524 |           15
+ search_gin_baseline_cold      | single     |   10 |    127.25 |  112.50 |  6624.74 |   2052.10 |           9 |        20874
+ search_gin_int                | and2       |   10 |      3.17 |    3.03 |     6.70 |      1.12 |         536 |            2
+ search_gin_int                | phrase     |   10 |      6.18 |    5.77 |    52.01 |     14.40 |        2326 |           87
+ search_gin_int                | single     |   10 |     95.05 |   89.90 |   101.89 |      3.23 |           2 |        20880
+ search_gin_int_cold           | and2       |   10 |      4.16 |    3.72 |     9.87 |      1.92 |         536 |            2
+ search_gin_int_cold           | single     |   10 |    126.73 |  108.79 |  5299.99 |   1634.45 |           2 |        20880
+ search_gist_baseline          | and2       |   10 |    165.81 |  159.63 |   590.96 |    134.54 |       22729 |        35807
+ search_gist_baseline          | phrase     |   10 |    170.20 |  162.67 |   174.50 |      3.68 |       22731 |        35809
+ search_gist_baseline          | single     |   10 |   1776.19 | 1569.68 |  7947.87 |   1961.98 |      150733 |       109176
+ search_gist_baseline_cold     | and2       |   10 |    230.29 |  201.38 |  6710.06 |   2050.06 |       22729 |        35766
+ search_gist_baseline_cold     | single     |   10 |    625.20 |  584.82 | 16757.90 |   5099.86 |      150734 |       109149
+ search_gist_int               | and2       |   10 |    200.28 |  189.66 |   205.48 |      5.44 |       34797 |        43589
+ search_gist_int               | phrase     |   10 |    204.75 |  194.47 |   218.96 |      7.42 |       34797 |        43593
+ search_gist_int               | single     |   10 |    550.43 |  516.72 |  5119.81 |   1615.37 |      202788 |       125369
+ search_gist_int_cold          | and2       |   10 |    252.23 |  233.96 |  8982.77 |   2758.99 |       34797 |        43531
+ search_gist_int_cold          | single     |   10 |    714.91 |  670.31 | 17683.38 |   5309.18 |      202789 |       125341
+(36 rows)
+
+
+══════════════════════════════════════════════════════════════════
+08_results.sql: done
