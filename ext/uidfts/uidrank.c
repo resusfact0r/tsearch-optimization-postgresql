@@ -10,8 +10,14 @@
  *   - positions are taken from the uidvector position array;
  *   - prefix matching is dropped (uidquery has no prefix operands).
  *
- * Because operands are summed in a different order (by id vs. by string),
- * ts_rank results may differ from the core ones in the last float bits.
+ * Results are bit-identical to the core ones when lexeme ids are ordered the
+ * same way as the lexeme strings.  Otherwise:
+ *   - ts_rank sums operands in id order instead of string order; the partial
+ *     sums are rounded to float4, so results may differ in the last bits;
+ *   - ts_rank_cd breaks ties between different lexemes at the same position
+ *     by lexeme index (core: by WordEntry address, i.e. string order), and
+ *     Cover() depends on that order, so results may differ noticeably when
+ *     several lexemes share a position.  With unique positions it is exact.
  */
 #include "postgres.h"
 

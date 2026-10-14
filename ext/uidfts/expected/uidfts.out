@@ -156,3 +156,51 @@ WHERE regexp_replace(uv::text, '[ABC]', '', 'g') <> uv2::text;
              0
 (1 row)
 
+-- Known differences from core when id order differs from string order.
+-- Mapping a..i -> 9..1 (reversed).
+-- (1) @@ is exact; (2) ts_rank sums operands in id order instead of string
+-- order, so it may differ in the last float bits; (3) ts_rank_cd breaks ties
+-- between different lexemes at the SAME position by lexeme index (core: by
+-- WordEntry address = string order), so it may differ when positions are
+-- shared, and is exact otherwise.
+SELECT setseed(0.7);
+ setseed 
+---------
+ 
+(1 row)
+
+CREATE TEMP TABLE dr AS              -- unique positions per document
+SELECT n, string_agg(chr(97 + (random() * 8)::int) || ':' || p
+                     || (ARRAY['', '', 'A', 'B', 'C'])[1 + (random() * 4)::int], ' ') AS txt
+FROM generate_series(1, 200) n, generate_series(1, 20 + n % 30) p
+GROUP BY n;
+CREATE TEMP TABLE drs AS             -- shared positions: several lexemes per position
+SELECT n, string_agg(chr(97 + (random() * 8)::int) || ':' || (1 + (random() * 15)::int), ' ') AS txt
+FROM generate_series(1, 200) n, generate_series(1, 30) k
+GROUP BY n;
+CREATE TEMP TABLE qr (qs text);
+INSERT INTO qr VALUES ('a | b'), ('a | b | c | d | e'), ('a & b'), ('a & b & c & d & e'),
+                      ('(a | b) & c'), ('a <-> b <-> c'), ('a:A | b | c:B'), ('a & !b');
+CREATE TEMP TABLE qrv AS
+SELECT qs, qs::tsquery AS tq, translate(qs, 'abcdefghi', '987654321')::uidquery AS uq FROM qr;
+SELECT count(*) AS pairs,
+       count(*) FILTER (WHERE (t.tv @@ q.tq) <> (t.uv @@ q.uq)) AS match_mismatch,
+       max(abs(ts_rank(t.tv, q.tq) - ts_rank(t.uv, q.uq))
+           / greatest(ts_rank(t.tv, q.tq), 1e-20)) < 1e-6 AS rank_close,
+       count(*) FILTER (WHERE ts_rank_cd(t.tv, q.tq) <> ts_rank_cd(t.uv, q.uq)) AS rank_cd_mismatch
+FROM (SELECT txt::tsvector AS tv, translate(txt, 'abcdefghi', '987654321')::uidvector AS uv FROM dr) t,
+     qrv q;
+ pairs | match_mismatch | rank_close | rank_cd_mismatch 
+-------+----------------+------------+------------------
+  1600 |              0 | t          |                0
+(1 row)
+
+SELECT count(*) FILTER (WHERE (t.tv @@ q.tq) <> (t.uv @@ q.uq)) AS match_mismatch,
+       count(*) FILTER (WHERE ts_rank_cd(t.tv, q.tq) <> ts_rank_cd(t.uv, q.uq)) > 0 AS rank_cd_differs_on_shared_positions
+FROM (SELECT txt::tsvector AS tv, translate(txt, 'abcdefghi', '987654321')::uidvector AS uv FROM drs) t,
+     qrv q;
+ match_mismatch | rank_cd_differs_on_shared_positions 
+----------------+-------------------------------------
+              0 | t
+(1 row)
+
